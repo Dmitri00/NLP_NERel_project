@@ -11,6 +11,8 @@ untill it passes
 Я не добавляю никаких асертов и проверок правильности финального ответа, правильности выполнения кодового задания
 без прямого указания проверки от пользователя
 
+Я не добавляю никаких выходных файлов отчетов, если этого явно не указано в задании.
+
 ## architecture principles:
 
 ### классы T*
@@ -28,6 +30,11 @@ Base* могут быть наследниками только других Bas
 переменные и методы в ТЗ по сущности Base* - это те и только те члены класса, которые могут использовать другие объекты у любого наследника данного класса.
 
 
+## Codebase structure:
+NEREL_MultiTask_Notebook.ipynb - главный ноутбук проекта
+base/ - all Base* classes are here, nothing but Base* here
+T_torch/  - all T* classes using torch here
+html - all html generating scripts here
 
 ## Agent skills
 

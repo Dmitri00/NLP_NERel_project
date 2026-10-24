@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
-from base import BaseBertModelLabeldInput
+from various import BaseBertModelLabeldInput
 
 IGNORE_LABEL = -100
 

@@ -6,11 +6,11 @@ import torch
 from torch import nn
 from transformers import PreTrainedModel
 
-from base import (
+from base import BaseModel
+from various import (
     BaseBertModelInput,
     BaseBertModelLabeldInput,
     BaseBertModelOutput,
-    BaseModel,
 )
 
 IGNORE_LABEL = -100

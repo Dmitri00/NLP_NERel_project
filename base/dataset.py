@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Self
 
-from .examples import BaseTokenizedNerelExample
+from .examples import BaseNerelExample
 
 
-class BaseNerelDataset(list[BaseTokenizedNerelExample], ABC):
-    """Список документов и интерфейс хранения без библиотечных зависимостей."""
+class BaseNerelDataset(ABC):
+    """Разбиения исходных документов и интерфейс их хранения."""
+
+    train: list[BaseNerelExample]
+    test: list[BaseNerelExample]
 
     @abstractmethod
     def save(self, path: str) -> None: ...

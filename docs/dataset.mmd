@@ -1,0 +1,124 @@
+classDiagram
+    direction TB
+
+    class TextTopic {
+        <<datatype>>
+    }
+    note for TextTopic "Признак темы текста — int."
+
+    class TextTag {
+        <<datatype>>
+        +int id
+        +str value
+    }
+    note for TextTag "Тег токена с идентификатором и строковым значением."
+
+    class BaseTextTagFabric {
+        <<abstract>>
+        +fit(tags: list~str~)* None
+        +by_id(id: int)* TextTag
+        +by_value(value: str)* TextTag
+        +save(path: str)* None
+        +load(path: str)* Self
+    }
+    note for BaseTextTagFabric "load — абстрактный classmethod."
+
+    class TextToken {
+        <<datatype>>
+    }
+    note for TextToken "Токен текста — str."
+
+    class BaseDocument {
+        +list~TextToken~ text
+    }
+
+    class BaseNerelExample {
+        <<TypedDict>>
+        +BaseDocument tokens
+        +list~TextTag~ tags
+        +list~TextTopic~ cls_vec
+    }
+
+    class BaseNerelDataset {
+        <<abstract>>
+        +list~BaseNerelExample~ train
+        +list~BaseNerelExample~ test
+        +save(path: str)* None
+        +load(path: str)* Self
+    }
+    note for BaseNerelDataset "Наследует ABC.\nload — абстрактный classmethod."
+
+    class BaseNerelDatasetBundle {
+        <<abstract>>
+        +BaseTextTagFabric tag_fabric
+        +dataset()* BaseNerelDataset
+    }
+
+    class BaseDatasetStorage {
+        <<abstract>>
+        +load(path: str)* BaseNerelDatasetBundle
+        +save(path: str, dataset: BaseNerelDatasetBundle)* None
+    }
+
+    class BaseTextPrediction {
+        <<TypedDict>>
+        +BaseDocument input_text
+        +list~TextTag~ tag_prediction
+        +list~TextTopic~ topic_prediction
+    }
+
+    class BaseModel {
+        <<abstract>>
+        +infer(documents: list~BaseDocument~)* list~BaseTextPrediction~
+        +save(path: str)* None
+        +load(path: str)* None
+    }
+
+    class BaseVisualizer {
+        <<abstract>>
+        +visualize(input_text: BaseNerelExample, prediction: BaseTextPrediction) None
+        +visualize(input_text: BaseDocument, prediction: BaseTextPrediction) None
+    }
+    note for BaseVisualizer "Показаны две перегрузки visualize.\nОбщая реализация visualize абстрактная;\nтип input_text — BaseNerelExample | BaseDocument."
+
+    class BaseMetric {
+        <<abstract>>
+        +eval(y_true: list~BaseNerelExample~, y_pred: list~BaseTextPrediction~)* float
+        +get_name()* str
+    }
+
+    class BaseMetricEvaluator {
+        <<abstract>>
+        +add(metric: BaseMetric)* None
+        +eval(y_true: list~BaseNerelExample~, y_pred: list~BaseTextPrediction~)* dict
+    }
+    note for BaseMetricEvaluator "Тип результата eval — dict[str, float]."
+
+    BaseTextTagFabric ..> TextTag : by_id, by_value — результат
+
+    BaseDocument --> "0..*" TextToken : text
+    BaseNerelExample --> BaseDocument : tokens
+    BaseNerelExample --> "0..*" TextTag : tags
+    BaseNerelExample --> "0..*" TextTopic : cls_vec
+
+    BaseNerelDataset o-- "0..*" BaseNerelExample : train
+    BaseNerelDataset o-- "0..*" BaseNerelExample : test
+    BaseNerelDatasetBundle ..> BaseNerelDataset : dataset — результат
+    BaseNerelDatasetBundle --> BaseTextTagFabric : tag_fabric
+    BaseDatasetStorage ..> BaseNerelDatasetBundle : load — результат, save — параметр
+
+    BaseModel ..> BaseDocument : infer — элементы documents
+    BaseModel ..> BaseTextPrediction : infer — элементы результата
+    BaseTextPrediction --> BaseDocument : input_text
+    BaseTextPrediction --> "0..*" TextTag : tag_prediction
+    BaseTextPrediction --> "0..*" TextTopic : topic_prediction
+
+    BaseVisualizer ..> BaseNerelExample : visualize — input_text
+    BaseVisualizer ..> BaseDocument : visualize — input_text
+    BaseVisualizer ..> BaseTextPrediction : visualize — prediction
+
+    BaseMetricEvaluator ..> BaseMetric : add — metric
+    BaseMetric ..> BaseNerelExample : eval — y_true
+    BaseMetric ..> BaseTextPrediction : eval — y_pred
+    BaseMetricEvaluator ..> BaseNerelExample : eval — y_true
+    BaseMetricEvaluator ..> BaseTextPrediction : eval — y_pred

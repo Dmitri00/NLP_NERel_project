@@ -1,0 +1,112 @@
+classDiagram
+    direction TB
+
+    class BaseModelType {
+        +str model_name
+    }
+
+    class BaseTokenizedNerelExample {
+        <<TypedDict>>
+        +list~int~ input_ids
+        +list~int~ attention_mask
+        +list~int~ labels
+        +get_word_ids(batch_index: int) list~int | None~
+    }
+
+    class BaseTokenizer {
+        <<Protocol>>
+        +tokenize(documents: list~BaseNerelExample~) list~BaseTokenizedNerelExample~
+    }
+
+    class BaseBatchTokenized {
+        <<Protocol>>
+        +list~list~int~~ input_ids
+        +list~list~int~~ attention_mask
+        +get_word_ids(batch_index: int) list~int | None~
+    }
+
+    note for BaseBatchTokenized "like output of higgingface AutoTokenizer"
+
+    class BaseLabeledTokenizedBatch {
+        +list~list~int~~ tags
+        +list~list~int~~ cls_vec
+    }
+
+    class BaseBatchLabler {
+        +build_batch(documents: list~BaseNerelExample~, batch_tokenized: BaseBatchTokenized) BaseLabeledTokenizedBatch
+    }
+
+    class BaseBatchTokenizer {
+        <<Protocol>>
+        +BaseModelType model_type
+        +tokenize(documents: list~BaseDocument~) BaseBatchTokenized
+    }
+    note for BaseBatchTokenizer "like huggingface AutoTokenizer"
+
+    class BaseBertModelInput {
+        <<TypedDict>>
+        +list~int~ input_ids
+        +list~int~ attention_mask
+    }
+
+    class BaseBertModelLabeldInput {
+        <<TypedDict>>
+        +list~int~ labels
+        +list~int~ document_labels
+    }
+
+    class BaseBatchPrediction {
+        <<TypedDict>>
+        +list~list~int~~ text_classes
+        +list~list~int~~ token_tags
+    }
+
+    class BaseBatchModel {
+        <<abstract>>
+        +BaseModelType model_type
+        +torch.nn.Module encoder
+        +forward(batch_input: BaseBatchTokenized)* BaseBatchPrediction
+        +save(path: str)* None
+        +load(path: str)* None
+    }
+
+    class BaseSubwordToWordAligner {
+        +align(batch_tokenized: BaseBatchTokenized, batch_prediction: BaseBatchPrediction, input: list~BaseDocument~) list~BaseTextPrediction~
+    }
+
+    class BaseTextPrediction
+    note for BaseTextPrediction "Определён в dataset.mmd."
+
+    class BaseDocument
+    note for BaseDocument "Определён в dataset.mmd."
+
+    class BatchModelAdapter
+
+    class BaseModel
+    note for BaseModel "Определён в dataset.mmd."
+
+    class BaseNerelExample
+    note for BaseNerelExample "Определён в dataset.mmd."
+
+    BaseBertModelInput <|-- BaseBertModelLabeldInput
+    BaseNerelExample <|-- BaseTokenizedNerelExample
+    BaseBatchTokenized <|-- BaseLabeledTokenizedBatch
+    BaseBatchLabler ..> BaseNerelExample : build_batch — элементы documents
+    BaseBatchLabler ..> BaseBatchTokenized : build_batch — batch_tokenized
+    BaseBatchLabler ..> BaseLabeledTokenizedBatch : build_batch — результат
+    BaseTokenizer ..> BaseNerelExample : tokenize — documents
+    BaseTokenizer ..> BaseTokenizedNerelExample : tokenize — элементы результата
+    BaseBatchTokenizer ..> BaseBatchTokenized : tokenize — результат
+    BaseBatchTokenizer ..> BaseDocument : tokenize — элементы documents
+    BaseBatchTokenizer --> BaseModelType : model_type
+    BaseBatchModel --> BaseModelType : model_type
+    BaseBatchModel ..> BaseBatchTokenized : forward — batch_input
+    BaseBatchModel ..> BaseBatchPrediction : forward — результат
+    BaseSubwordToWordAligner ..> BaseBatchTokenized : align — batch_tokenized
+    BaseSubwordToWordAligner ..> BaseBatchPrediction : align — batch_prediction
+    BaseSubwordToWordAligner ..> BaseTextPrediction : align — элементы результата
+    BaseSubwordToWordAligner ..> BaseDocument : align — элементы input
+    BaseModel <|-- BatchModelAdapter
+    BatchModelAdapter *-- BaseBatchModel
+    BatchModelAdapter *-- BaseBatchTokenizer
+    BatchModelAdapter *-- BaseSubwordToWordAligner

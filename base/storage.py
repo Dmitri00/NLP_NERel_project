@@ -1,14 +1,11 @@
 from abc import ABC, abstractmethod
 
 from .dataset import BaseNerelDataset
+from .tags import BaseTextTagFabric
 
 
 class BaseNerelDatasetBundle(ABC):
-    @abstractmethod
-    def label2id(self, label: str) -> int: ...
-
-    @abstractmethod
-    def id2label(self, id: int) -> str: ...
+    tag_fabric: BaseTextTagFabric
 
     @abstractmethod
     def dataset(self) -> BaseNerelDataset: ...
